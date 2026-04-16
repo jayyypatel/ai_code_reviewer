@@ -104,7 +104,7 @@ REST_FRAMEWORK = {
     ],
 }
 
-_default_cors_origins = ["https://ai-code-reviewer-iota-eight.vercel.app"]
+_default_cors_origins = ["https://ai-code-reviewer-iota-eight.vercel.app", "https://ai-agent.pateljay.app"]
 _env_cors_origins = [
     origin.strip().rstrip("/")
     for origin in os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")

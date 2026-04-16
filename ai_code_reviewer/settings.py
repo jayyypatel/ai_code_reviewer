@@ -104,13 +104,15 @@ REST_FRAMEWORK = {
     ],
 }
 
-CORS_ALLOWED_ORIGINS = [
-    origin.strip()
-    for origin in os.getenv(
-        "CORS_ALLOWED_ORIGINS",
-        "https://ai-code-reviewer-iota-eight.vercel.app",
-    ).split(",")
+_default_cors_origins = ["https://ai-code-reviewer-iota-eight.vercel.app"]
+_env_cors_origins = [
+    origin.strip().rstrip("/")
+    for origin in os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
     if origin.strip()
+]
+CORS_ALLOWED_ORIGINS = _env_cors_origins or _default_cors_origins
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://[a-z0-9-]+\.vercel\.app$",
 ]
 CORS_ALLOW_CREDENTIALS = False
 

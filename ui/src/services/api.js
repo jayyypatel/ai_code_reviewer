@@ -3,6 +3,12 @@ const JSON_HEADERS = {
 };
 
 const REQUEST_TIMEOUT_MS = 180000;
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/+$/, "");
+
+function withBase(path) {
+  if (!API_BASE_URL) return path;
+  return `${API_BASE_URL}${path}`;
+}
 
 function extractErrorMessage(data, status) {
   if (!data) {
@@ -76,7 +82,7 @@ async function request(url, payload) {
 }
 
 export function reviewGitHubPR(prUrl, userContext = "") {
-  return request("/github-review/", {
+  return request(withBase("/github-review/"), {
     pr_url: prUrl,
     user_context: userContext
   });

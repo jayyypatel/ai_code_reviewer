@@ -102,8 +102,15 @@ REST_FRAMEWORK = {
     ],
 }
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-pro")
+GEMINI_API_BASE_URL = os.getenv(
+    "GEMINI_API_BASE_URL",
+    "https://generativelanguage.googleapis.com/v1beta",
+)
+GEMINI_TIMEOUT_SECONDS = int(os.getenv("GEMINI_TIMEOUT_SECONDS", "30"))
+GEMINI_MAX_RETRIES = int(os.getenv("GEMINI_MAX_RETRIES", "2"))
+GEMINI_RETRY_BACKOFF_SECONDS = float(os.getenv("GEMINI_RETRY_BACKOFF_SECONDS", "1.5"))
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
 GITHUB_API_BASE_URL = os.getenv("GITHUB_API_BASE_URL", "https://api.github.com")
 GITHUB_TIMEOUT_SECONDS = int(os.getenv("GITHUB_TIMEOUT_SECONDS", "20"))

@@ -1,6 +1,8 @@
 import json
+import time
 from typing import Any
 
+from reviewer.models import ReviewRun
 from .ai_service import analyze_code
 from .exceptions import ValidationServiceError
 from .github_service import GitHubService
@@ -77,11 +79,22 @@ def _raw_code_prompt(code: str) -> str:
     )
 
 
-def _pr_prompt(repo: str, pull_number: int, parsed_files: list[dict[str, Any]]) -> str:
+def _pr_prompt(
+    repo: str,
+    pull_number: int,
+    parsed_files: list[dict[str, Any]],
+    user_context: str = "",
+) -> str:
     serialized_diff = json.dumps(parsed_files, indent=2)
+    context_block = (
+        f"Additional reviewer context from user:\n{user_context.strip()}\n\n"
+        if user_context and user_context.strip()
+        else ""
+    )
     return (
         f"You are an elite staff-level reviewer auditing PR {repo}#{pull_number}.\n"
         "Your mission is to produce high-signal findings only.\n\n"
+        f"{context_block}"
         "Scope:\n"
         "- Analyze only changed lines and their direct local context in this diff payload.\n"
         "- Do not invent project details that are not present.\n\n"
@@ -114,13 +127,49 @@ def review_raw_code(code: str) -> list[dict[str, Any]]:
     return _normalize_output(output)
 
 
-def review_github_pr(repo: str, pull_number: int) -> list[dict[str, Any]]:
+def review_github_pr(
+    repo: str,
+    pull_number: int,
+    user_context: str = "",
+    pr_url: str = "",
+) -> list[dict[str, Any]]:
+    started = time.perf_counter()
     github_service = GitHubService()
     files = github_service.fetch_pr_files(repo=repo, pull_number=pull_number)
     parsed_files = parse_pr_file_patches(files)
     if not parsed_files:
         raise ValidationServiceError("No reviewable changed lines were found in PR patches.")
 
-    prompt = _pr_prompt(repo=repo, pull_number=pull_number, parsed_files=parsed_files)
-    output = analyze_code(prompt=prompt)
-    return _normalize_output(output)
+    prompt = _pr_prompt(
+        repo=repo,
+        pull_number=pull_number,
+        parsed_files=parsed_files,
+        user_context=user_context,
+    )
+    status = "success"
+    error_message = ""
+    raw_output: Any = None
+    normalized: list[dict[str, Any]] = []
+    try:
+        raw_output = analyze_code(prompt=prompt)
+        normalized = _normalize_output(raw_output)
+        return normalized
+    except Exception as exc:
+        status = "failed"
+        error_message = str(exc)
+        raise
+    finally:
+        duration_ms = int((time.perf_counter() - started) * 1000)
+        ReviewRun.objects.create(
+            repo=repo,
+            pull_number=pull_number,
+            pr_url=pr_url,
+            user_context=user_context,
+            changed_lines_payload=parsed_files,
+            prompt_sent=prompt,
+            raw_ai_output=raw_output if isinstance(raw_output, (list, dict)) else None,
+            normalized_findings=normalized,
+            status=status,
+            error_message=error_message,
+            duration_ms=duration_ms,
+        )

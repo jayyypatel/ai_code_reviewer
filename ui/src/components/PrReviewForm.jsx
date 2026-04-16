@@ -1,28 +1,23 @@
 import { useState } from "react";
 
-const REPO_PATTERN = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
+const PR_URL_PATTERN = /^https?:\/\/(www\.)?github\.com\/[^/]+\/[^/]+\/pull\/\d+\/?$/i;
 
 export default function PrReviewForm({ loading, elapsedMs, onSubmit }) {
-  const [repo, setRepo] = useState("");
-  const [pullNumber, setPullNumber] = useState("");
+  const [prUrl, setPrUrl] = useState("");
+  const [userContext, setUserContext] = useState("");
   const [error, setError] = useState("");
 
   function handleSubmit(event) {
     event.preventDefault();
-    const normalizedRepo = repo.trim();
-    const normalizedPr = pullNumber.trim();
+    const normalizedUrl = prUrl.trim();
 
-    if (!REPO_PATTERN.test(normalizedRepo)) {
-      setError("Repository must be in owner/repo format.");
-      return;
-    }
-    if (!/^\d+$/.test(normalizedPr) || Number(normalizedPr) < 1) {
-      setError("PR number must be a positive number.");
+    if (!PR_URL_PATTERN.test(normalizedUrl)) {
+      setError("Enter a valid GitHub PR URL like https://github.com/owner/repo/pull/123.");
       return;
     }
 
     setError("");
-    onSubmit(normalizedRepo, normalizedPr);
+    onSubmit(normalizedUrl, userContext.trim());
   }
 
   function formatSeconds(ms) {
@@ -33,46 +28,51 @@ export default function PrReviewForm({ loading, elapsedMs, onSubmit }) {
     <section className="pr-card">
       <h2>GitHub PR Review</h2>
       <p className="section-subtitle">
-        Enter repository and PR number. The review runs only on changed lines.
+        Paste the PR URL. Shelby auto-extracts owner, repo, and PR number.
       </p>
       <form className="pr-form" onSubmit={handleSubmit}>
-        <label htmlFor="repo-input">Repository</label>
+        <label htmlFor="pr-url-input">Pull Request URL</label>
         <input
-          id="repo-input"
+          id="pr-url-input"
           type="text"
-          placeholder="odoo/odoo"
-          value={repo}
-          onChange={(event) => setRepo(event.target.value)}
+          placeholder="https://github.com/odoo/odoo/pull/259464"
+          value={prUrl}
+          onChange={(event) => setPrUrl(event.target.value)}
           autoComplete="off"
           required
         />
 
-        <label htmlFor="pr-input">Pull Request Number</label>
-        <input
-          id="pr-input"
-          type="number"
-          min="1"
-          placeholder="259464"
-          value={pullNumber}
-          onChange={(event) => setPullNumber(event.target.value)}
-          required
+        <label htmlFor="context-input">Review Context (Optional)</label>
+        <textarea
+          id="context-input"
+          rows={4}
+          placeholder="Example: focus on security, data consistency, and backward compatibility."
+          value={userContext}
+          onChange={(event) => setUserContext(event.target.value)}
         />
 
         {error ? <p className="error form-error">{error}</p> : null}
 
-        <p className="helper-text">Format: owner/repo (example: odoo/odoo)</p>
+        <p className="helper-text">Tip: Add context to get more targeted findings from Shelby.</p>
 
         <button className="primary-btn" type="submit" disabled={loading}>
           {loading ? (
             <span className="btn-loading">
               <span className="btn-spinner" />
-              Reviewing PR
+              Shelby is reviewing
             </span>
           ) : (
             "Review PR"
           )}
         </button>
         {loading ? <p className="timer-text">Elapsed: {formatSeconds(elapsedMs)}s</p> : null}
+        {loading ? (
+          <div className="loading-wave" aria-hidden="true">
+            <span />
+            <span />
+            <span />
+          </div>
+        ) : null}
       </form>
     </section>
   );

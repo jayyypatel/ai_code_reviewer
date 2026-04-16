@@ -75,9 +75,9 @@ async function request(url, payload) {
   return data;
 }
 
-export function reviewGitHubPR(repo, pullNumber) {
+export function reviewGitHubPR(prUrl, userContext = "") {
   return request("/github-review/", {
-    repo,
-    pull_number: Number(pullNumber)
+    pr_url: prUrl,
+    user_context: userContext
   });
 }

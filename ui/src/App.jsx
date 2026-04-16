@@ -1,35 +1,16 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import FindingsList from "./components/FindingsList";
 import PrReviewForm from "./components/PrReviewForm";
-import ThemeToggle from "./components/ThemeToggle";
 import ToastStack from "./components/ToastStack";
 import { reviewGitHubPR } from "./services/api";
-
-const THEME_KEY = "ai-reviewer-theme";
 
 export default function App() {
   const [findings, setFindings] = useState([]);
   const [loading, setLoading] = useState(false);
   const [hasReviewed, setHasReviewed] = useState(false);
-  const [theme, setTheme] = useState("light");
   const [elapsedMs, setElapsedMs] = useState(0);
   const [lastDurationMs, setLastDurationMs] = useState(null);
   const [toasts, setToasts] = useState([]);
-
-  useEffect(() => {
-    const stored = window.localStorage.getItem(THEME_KEY);
-    if (stored === "dark" || stored === "light") {
-      setTheme(stored);
-      return;
-    }
-    const prefersDark = window.matchMedia?.("(prefers-color-scheme: dark)").matches;
-    setTheme(prefersDark ? "dark" : "light");
-  }, []);
-
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-    window.localStorage.setItem(THEME_KEY, theme);
-  }, [theme]);
 
   function addToast(type, message) {
     const id = crypto.randomUUID();
@@ -69,9 +50,9 @@ export default function App() {
     }
   }
 
-  async function handleGitHubReview(repo, pullNumber) {
+  async function handleGitHubReview(prUrl, userContext) {
     await runAction(async () => {
-      const data = await reviewGitHubPR(repo, pullNumber);
+      const data = await reviewGitHubPR(prUrl, userContext);
       setFindings(data);
       addToast("success", `Found ${data.length} issue(s).`);
     });
@@ -82,10 +63,6 @@ export default function App() {
     return `Latest review finished in ${formatDuration(lastDurationMs)}.`;
   }, [hasReviewed, lastDurationMs]);
 
-  function toggleTheme() {
-    setTheme((prev) => (prev === "light" ? "dark" : "light"));
-  }
-
   return (
     <main className="container">
       <header className="header">
@@ -95,11 +72,10 @@ export default function App() {
               🤖
             </span>
             <div>
-              <h1>AI Code Review Agent</h1>
-              <p>Review GitHub pull requests with AI insights</p>
+              <h1>Shelby - AI Code Review Agent</h1>
+              <p>Minimal, premium PR reviews with focused AI insights</p>
             </div>
           </div>
-          <ThemeToggle theme={theme} onToggle={toggleTheme} />
         </div>
         <div className="header-backdrop" aria-hidden="true" />
       </header>

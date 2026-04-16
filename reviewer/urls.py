@@ -1,10 +1,10 @@
 from django.urls import path
 
-from .views import CodeReviewView, GitHubCommentView, GitHubReviewView
+from .views import GitHubCommentView, GitHubReviewView, ReviewRunListView
 
 
 urlpatterns = [
-    path("review/", CodeReviewView.as_view(), name="review"),
     path("github-review/", GitHubReviewView.as_view(), name="github-review"),
     path("github-comment/", GitHubCommentView.as_view(), name="github-comment"),
+    path("review-runs/", ReviewRunListView.as_view(), name="review-runs"),
 ]

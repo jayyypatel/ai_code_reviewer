@@ -1,7 +1,6 @@
 amqp==5.3.1
 annotated-types==0.7.0
 anyio==4.13.0
-apturl==0.5.2
 asgiref==3.8.1
 asn1crypto==1.4.0
 async-timeout==5.0.1

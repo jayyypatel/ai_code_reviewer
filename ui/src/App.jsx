@@ -73,7 +73,7 @@ export default function App() {
             </span>
             <div>
               <h1>Odoo - AI Code Review Agent</h1>
-              <p>Minimal, triel based PR reviews with focused AI insights</p>
+              <p>Minimal, trial based PR reviews with focused AI insights</p>
             </div>
           </div>
         </div>

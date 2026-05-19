@@ -72,8 +72,8 @@ export default function App() {
               🤖
             </span>
             <div>
-              <h1>Shelby - AI Code Review Agent</h1>
-              <p>Minimal, premium PR reviews with focused AI insights</p>
+              <h1>Odoo - AI Code Review Agent</h1>
+              <p>Minimal, triel based PR reviews with focused AI insights</p>
             </div>
           </div>
         </div>
